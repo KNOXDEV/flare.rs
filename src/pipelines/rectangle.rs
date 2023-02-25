@@ -1,24 +1,14 @@
+use crate::pipelines::Color;
+use crate::pipelines::ScreenPosition;
 use crate::renderer::render_item::{DrawTechnique, RenderItem};
 use wgpu::util::DeviceExt;
 use wgpu::*;
 
-#[repr(C)]
-#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-struct Vertex(f32, f32);
-
 const VERTEX_LAYOUT: VertexBufferLayout = VertexBufferLayout {
-    array_stride: std::mem::size_of::<Vertex>() as BufferAddress,
+    array_stride: std::mem::size_of::<RectangleVertex>() as BufferAddress,
     step_mode: VertexStepMode::Vertex,
     attributes: &vertex_attr_array![0 => Float32x3],
 };
-
-#[repr(C)]
-#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-struct RectangleInstance {
-    position: [f32; 2],
-    size: [f32; 2],
-    color: [f32; 3],
-}
 
 const INSTANCE_VERTEX_LAYOUT: VertexBufferLayout = VertexBufferLayout {
     array_stride: std::mem::size_of::<RectangleInstance>() as BufferAddress,
@@ -26,27 +16,26 @@ const INSTANCE_VERTEX_LAYOUT: VertexBufferLayout = VertexBufferLayout {
     attributes: &vertex_attr_array![1 => Float32x2, 2 => Float32x2, 3 => Float32x3],
 };
 
-const RECTANGLE_VERTS: &[Vertex] = &[
-    Vertex(1.0, 1.0),
-    Vertex(-1.0, 1.0),
-    Vertex(-1.0, -1.0),
-    Vertex(1.0, -1.0),
+const RECTANGLE_VERTS: &[RectangleVertex] = &[
+    RectangleVertex(1.0, 1.0),
+    RectangleVertex(-1.0, 1.0),
+    RectangleVertex(-1.0, -1.0),
+    RectangleVertex(1.0, -1.0),
 ];
 
 const RECTANGLE_INDICES: &[u16] = &[0, 1, 2, 2, 3, 0];
 
-const RECTANGLE_INSTANCES: &[RectangleInstance] = &[
-    RectangleInstance {
-        position: [0.0, 0.0],
-        size: [0.1, 0.1],
-        color: [0.5, 0.7, 0.8],
-    },
-    RectangleInstance {
-        position: [0.0, 0.0],
-        size: [0.05, 0.05],
-        color: [0.8, 0.5, 0.5],
-    },
-];
+#[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+struct RectangleVertex(f32, f32);
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct RectangleInstance {
+    pub(crate) position: ScreenPosition,
+    pub(crate) size: ScreenPosition,
+    pub(crate) color: Color,
+}
 
 pub struct RectangleRenderer {
     vertex_buffer: Buffer,
@@ -120,10 +109,14 @@ impl RectangleRenderer {
         }
     }
 
-    pub fn get_items(&mut self, device: &Device) -> Vec<RenderItem> {
+    pub fn get_items(
+        &mut self,
+        device: &Device,
+        instances: &[RectangleInstance],
+    ) -> Vec<RenderItem> {
         let instance_buffer = device.create_buffer_init(&util::BufferInitDescriptor {
             label: Some("Rectangle Vertex Buffer"),
-            contents: bytemuck::cast_slice(RECTANGLE_INSTANCES),
+            contents: bytemuck::cast_slice(instances),
             usage: BufferUsages::VERTEX,
         });
 
@@ -136,7 +129,7 @@ impl RectangleRenderer {
                 index_buffer: &self.index_buffer,
                 indices: 0..RECTANGLE_INDICES.len() as u32,
             },
-            instances: 0..RECTANGLE_INSTANCES.len() as u32,
+            instances: 0..instances.len() as u32,
         };
 
         vec![item]

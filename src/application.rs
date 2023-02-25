@@ -1,6 +1,9 @@
+use crate::pipelines::rectangle::RectangleInstance;
+use crate::pipelines::{Color, ScreenPosition};
 use crate::renderer::device_context::DeviceContext;
 use crate::renderer::window_context::WindowContext;
 use crate::renderer::Renderer;
+use std::time::{SystemTime, UNIX_EPOCH};
 use wgpu::*;
 use winit::event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -26,7 +29,23 @@ impl Application {
         Self { renderer }
     }
 
-    fn update(&self) {}
+    fn update(&mut self) {
+        let time = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis();
+
+        let x = (time as f64 / 1000.0).sin();
+        let y = (time as f64 / 1000.0).cos();
+
+        let rects = [RectangleInstance {
+            position: ScreenPosition(x as f32 * 0.5, y as f32 * 0.5),
+            size: ScreenPosition(0.1, 0.1),
+            color: Color(0.5, 0.7, 0.8),
+        }];
+
+        self.renderer.set_rectangles(&rects);
+    }
 
     pub fn run_event_loop(mut self, event_loop: EventLoop<()>) -> ! {
         event_loop.run(move |event, _, control_flow| match event {

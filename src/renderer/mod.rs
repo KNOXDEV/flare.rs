@@ -1,4 +1,4 @@
-use crate::pipelines::rectangle::RectangleRenderer;
+use crate::pipelines::rectangle::{RectangleInstance, RectangleRenderer};
 use crate::renderer::device_context::DeviceContext;
 use crate::renderer::render_item::DrawTechnique;
 use crate::renderer::window_context::WindowContext;
@@ -15,6 +15,7 @@ pub struct Renderer {
     device_context: DeviceContext,
     surface_configuration: SurfaceConfiguration,
     rectangle_renderer: RectangleRenderer,
+    rectangles: Vec<RectangleInstance>,
 }
 
 impl Renderer {
@@ -29,6 +30,7 @@ impl Renderer {
             device_context,
             surface_configuration,
             rectangle_renderer,
+            rectangles: vec![],
         }
     }
 
@@ -52,6 +54,11 @@ impl Renderer {
         self.window_context.window.id()
     }
 
+    pub fn set_rectangles(&mut self, rectangles: &[RectangleInstance]) {
+        self.rectangles.clear();
+        self.rectangles.extend_from_slice(rectangles);
+    }
+
     pub fn render(&mut self) -> Result<(), SurfaceError> {
         let (output, view) = self.window_context.create_surface_texture()?;
         let mut encoder = self
@@ -60,7 +67,7 @@ impl Renderer {
 
         let render_items = self
             .rectangle_renderer
-            .get_items(&self.device_context.device);
+            .get_items(&self.device_context.device, self.rectangles.as_slice());
 
         {
             // we only have to create a new render pass between items if the framebuffer /
