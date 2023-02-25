@@ -1,26 +1,14 @@
-use crate::context::{DeviceContext, WindowContext};
 use crate::pipelines::rectangle::RectangleRenderer;
-use std::ops::Range;
+use crate::renderer::device_context::DeviceContext;
+use crate::renderer::render_item::DrawTechnique;
+use crate::renderer::window_context::WindowContext;
 use wgpu::*;
 use winit::dpi::PhysicalSize;
 use winit::window::WindowId;
 
-pub struct RenderItem<'a> {
-    pub pipeline: &'a RenderPipeline,
-    pub vertex_buffers: Vec<&'a Buffer>,
-    pub draw_technique: DrawTechnique<'a>,
-    pub instances: Range<u32>,
-}
-
-pub enum DrawTechnique<'a> {
-    VertexOnly {
-        vertices: Range<u32>,
-    },
-    Indexed {
-        index_buffer: &'a Buffer,
-        indices: Range<u32>,
-    },
-}
+pub mod device_context;
+pub mod render_item;
+pub mod window_context;
 
 pub struct Renderer {
     window_context: WindowContext,

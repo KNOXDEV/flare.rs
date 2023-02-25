@@ -1,4 +1,4 @@
-use crate::renderer::{DrawTechnique, RenderItem};
+use crate::renderer::render_item::{DrawTechnique, RenderItem};
 use wgpu::util::DeviceExt;
 use wgpu::*;
 

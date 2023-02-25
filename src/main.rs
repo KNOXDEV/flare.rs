@@ -2,7 +2,6 @@ use crate::application::Application;
 use winit::event_loop::EventLoop;
 
 mod application;
-mod context;
 mod pipelines;
 mod renderer;
 

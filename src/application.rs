@@ -1,4 +1,5 @@
-use crate::context::{DeviceContext, WindowContext};
+use crate::renderer::device_context::DeviceContext;
+use crate::renderer::window_context::WindowContext;
 use crate::renderer::Renderer;
 use wgpu::*;
 use winit::event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
